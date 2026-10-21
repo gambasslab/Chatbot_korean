@@ -83,13 +83,46 @@ const SCHEMA = {
         required: ['speaker', 'text']
       }
     },
-    mission_success: { type: 'BOOLEAN' }
+    mission_success: { type: 'BOOLEAN' },
+    tone: { type: 'STRING', enum: ['kind', 'neutral', 'hurtful'] }
   },
-  required: ['messages', 'mission_success']
+  required: ['messages', 'mission_success', 'tone']
 };
 
 function clip(s, n) {
   return String(s || '').slice(0, n);
+}
+
+async function callOpenAI(model, apiKey, systemPrompt, userPrompt) {
+  const url = 'https://api.openai.com/v1/chat/completions';
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt + '\n' + COMMON + '\n\n반드시 아래 JSON 형식으로만 응답하세요:\n{\n  "messages": [{"speaker": "...", "text": "..."}],\n  "mission_success": false,\n  "tone": "kind|neutral|hurtful"\n}'
+          },
+          { role: 'user', content: userPrompt }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.8
+      }),
+      signal: ctrl.signal
+    });
+    const data = await r.json().catch(() => ({}));
+    return { status: r.status, data };
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 async function callGemini(model, apiKey, body) {
@@ -112,12 +145,14 @@ async function callGemini(model, apiKey, body) {
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+
   if (req.method !== 'POST') {
-    return res.status(200).json({ ok: true, ai: Boolean(process.env.GEMINI_API_KEY) });
+    return res.status(200).json({ ok: true, ai: Boolean(openaiKey || geminiKey) });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: 'NO_KEY' });
+  if (!openaiKey && !geminiKey) return res.status(503).json({ error: 'NO_KEY' });
 
   let payload = req.body;
   if (typeof payload === 'string') {
@@ -138,54 +173,90 @@ module.exports = async (req, res) => {
 
   const flagged = payload.flagged ? '\n(참고: 학생의 이번 말에서 거친 표현이 감지되었습니다. 캐릭터는 서운함을 표현하되 학생을 비난하지 마세요. mission_success는 false.)' : '';
 
-  const userTurn = `[지금까지의 대화]\n${transcript || '(없음)'}\n\n[학생이 방금 보낸 말]\n${message}${flagged}\n\n위 학생의 말에 캐릭터로서 답하세요. speaker는 ${room.speakers.map(s => `"${s}"`).join(', ')} 중에서만 고르세요.${room.mission ? '' : ' mission_success는 항상 false.'}`;
+  const userTurn = `[지금까지의 대화]\n${transcript || '(없음)'}\n\n[학생이 방금 보낸 말]\n${message}${flagged}\n\n위 학생의 말에 캐릭터로서 답하세요. tone에는 학생의 이번 말을 평가해 넣으세요: 듣는 친구를 배려·공감·격려했으면 "kind", 비난·놀림·재촉·무시·비꼬기처럼 상처를 줄 수 있으면 "hurtful"(욕이 없어도 해당), 그 외 질문이나 평범한 말은 "neutral". speaker는 ${room.speakers.map(s => `"${s}"`).join(', ')} 중에서만 고르세요.${room.mission ? '' : ' mission_success는 항상 false.'}`;
 
-  const body = {
-    systemInstruction: { parts: [{ text: room.prompt + '\n' + COMMON }] },
-    contents: [{ role: 'user', parts: [{ text: userTurn }] }],
-    generationConfig: {
-      temperature: 1.0,
-      topP: 0.95,
-      maxOutputTokens: 2048,
-      responseMimeType: 'application/json',
-      responseSchema: SCHEMA
-    },
-    safetySettings: [
-      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
-      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
-      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
-    ]
-  };
-
-  let lastStatus = 0;
-  for (const model of MODELS) {
+  // 1. OpenAI API가 설정되어 있으면 OpenAI 우선 호출 (gpt-4o-mini 기본)
+  if (openaiKey) {
     try {
-      const { status, data } = await callGemini(model, apiKey, body);
-      lastStatus = status;
-      if (status === 404 || status === 400) continue; // 모델 이름 문제 → 다음 모델
-      if (status === 429 || status >= 500) continue;  // 한도 초과/서버 오류 → 다음 모델 시도
-      if (status !== 200) break;
+      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      const { status, data } = await callOpenAI(model, openaiKey, room.prompt, userTurn);
+      if (status === 200) {
+        const raw = data?.choices?.[0]?.message?.content || '{}';
+        const parsed = JSON.parse(raw);
+        const msgs = (parsed.messages || [])
+          .filter(m => m && room.speakers.includes(m.speaker) && String(m.text || '').trim())
+          .slice(0, 3)
+          .map(m => ({ speaker: m.speaker, text: clip(m.text, 400) }));
 
-      const parts = data?.candidates?.[0]?.content?.parts || [];
-      const raw = parts.map(p => p.text || '').join('');
-      let parsed;
-      try { parsed = JSON.parse(raw); } catch { continue; }
-
-      const msgs = (parsed.messages || [])
-        .filter(m => m && room.speakers.includes(m.speaker) && String(m.text || '').trim())
-        .slice(0, 3)
-        .map(m => ({ speaker: m.speaker, text: clip(m.text, 400) }));
-      if (!msgs.length) continue;
-
-      return res.status(200).json({
-        messages: msgs,
-        missionSuccess: room.mission && !payload.flagged && Boolean(parsed.mission_success),
-        model
-      });
+        if (msgs.length) {
+          return res.status(200).json({
+            messages: msgs,
+            missionSuccess: room.mission && !payload.flagged && Boolean(parsed.mission_success),
+            tone: payload.flagged ? 'hurtful' : (['kind', 'neutral', 'hurtful'].includes(parsed.tone) ? parsed.tone : 'neutral'),
+            model: `openai:${model}`
+          });
+        }
+      }
     } catch (e) {
-      lastStatus = 599;
+      if (!geminiKey) {
+        return res.status(502).json({ error: 'OPENAI_FAILED' });
+      }
     }
   }
-  return res.status(502).json({ error: 'AI_FAILED', status: lastStatus });
+
+  // 2. Gemini API 호출
+  if (geminiKey) {
+    const body = {
+      systemInstruction: { parts: [{ text: room.prompt + '\n' + COMMON }] },
+      contents: [{ role: 'user', parts: [{ text: userTurn }] }],
+      generationConfig: {
+        temperature: 1.0,
+        topP: 0.95,
+        maxOutputTokens: 2048,
+        responseMimeType: 'application/json',
+        responseSchema: SCHEMA
+      },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
+      ]
+    };
+
+    let lastStatus = 0;
+    for (const model of MODELS) {
+      try {
+        const { status, data } = await callGemini(model, geminiKey, body);
+        lastStatus = status;
+        if (status === 404 || status === 400) continue;
+        if (status === 429 || status >= 500) continue;
+        if (status !== 200) break;
+
+        const parts = data?.candidates?.[0]?.content?.parts || [];
+        const raw = parts.map(p => p.text || '').join('');
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch { continue; }
+
+        const msgs = (parsed.messages || [])
+          .filter(m => m && room.speakers.includes(m.speaker) && String(m.text || '').trim())
+          .slice(0, 3)
+          .map(m => ({ speaker: m.speaker, text: clip(m.text, 400) }));
+        if (!msgs.length) continue;
+
+        return res.status(200).json({
+          messages: msgs,
+          missionSuccess: room.mission && !payload.flagged && Boolean(parsed.mission_success),
+          tone: payload.flagged ? 'hurtful' : (['kind', 'neutral', 'hurtful'].includes(parsed.tone) ? parsed.tone : 'neutral'),
+          model: `gemini:${model}`
+        });
+      } catch (e) {
+        lastStatus = 599;
+      }
+    }
+    return res.status(502).json({ error: 'AI_FAILED', status: lastStatus });
+  }
+
+  return res.status(502).json({ error: 'NO_ACTIVE_AI' });
 };
+
