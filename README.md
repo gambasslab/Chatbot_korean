@@ -1,18 +1,20 @@
 # 🐿️ 인터넷 언어 예절 챗봇 (Vercel 배포판)
 
-바름이·준호·서연·민우·다솜이가 Gemini AI로 매번 다른 답을 합니다.
-API 키는 Vercel 서버에만 저장되어 학생 기기에는 보이지 않습니다.
-AI 연결이 안 되면 자동으로 기본(오프라인) 대화 모드로 작동합니다. 퀴즈방은 항상 기본 모드입니다.
+바름이·준호·서연·민우·다솜이가 **OpenAI (GPT-4o-mini)** 또는 **Google Gemini AI**로 매번 새로운 대화를 나눕니다.
+- **보안**: API 키는 Vercel 서버 환경변수(`OPENAI_API_KEY` 또는 `GEMINI_API_KEY`)에만 저장되어 학생 기기에는 노출되지 않습니다.
+- **안정성**: AI 키가 없거나 일시적 오류 발생 시 자동으로 기본(오프라인) 대화 모드로 매끄럽게 작동합니다. (퀴즈방은 항상 기본 모드)
 
-## Vercel 배포 (안티그래비티 터미널)
-1. 터미널에서 이 폴더로 이동: `cd "$HOME\Desktop\Antigravity\dist-chatbot"`
-2. `npx vercel login` → 브라우저에서 로그인
-3. `npx vercel` → 질문은 모두 Enter (프로젝트 이름만 원하면 변경)
-4. API 키 등록: `npx vercel env add GEMINI_API_KEY production` → 키 붙여넣기
-5. 최종 배포: `npx vercel --prod` → 나온 주소를 학생들에게 공유
+## 환경변수 (API 키) 설정
+Vercel 대시보드 또는 터미널에서 아래 환경변수를 등록합니다:
+- **`OPENAI_API_KEY`** (추천): OpenAI API 키 (`sk-...`)
+  - 기본 모델: `gpt-4o-mini` (응답 속도가 빠르고 1차시 75명 수업 시 비용 수십~수백 원 수준)
+  - 원하는 경우 `OPENAI_MODEL` 환경변수로 모델 변경 가능
+- **`GEMINI_API_KEY`** (대안): Google Gemini API 키
+  - Google AI Studio(aistudio.google.com)에서 발급
 
-## 75명 동시 사용 시 주의
-- Gemini 무료 등급은 분당 요청 수가 적어(약 10회/분) 수업 중 한도를 넘을 수 있습니다.
-- Google AI Studio(aistudio.google.com) → API 키 → 결제(Billing) 연결 시 한도가 크게 늘어납니다. 한 차시 75명 사용 비용은 수백 원 수준입니다.
-- 한도를 넘으면 그 순간만 기본 모드 답변으로 자동 전환됩니다.
-- 수업 전 화면 오른쪽 위 버튼이 `🤖 AI 연결됨`인지 확인하세요.
+## 배포 및 업데이트
+이 저장소는 GitHub 및 Vercel과 연동되어 있습니다:
+- GitHub 저장소: https://github.com/gambasslab/Chatbot_korean
+- 배포 사이트: https://dist-chatbot-zeta.vercel.app
+- 코드를 수정 후 `git push origin main`하면 Vercel에서 자동으로 최신 버전이 재배포됩니다.
+
