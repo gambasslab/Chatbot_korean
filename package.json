@@ -1,0 +1,6 @@
+{
+  "name": "netiquette-chatbot",
+  "version": "2.0.0",
+  "private": true,
+  "description": "초등 4학년 국어 인터넷 언어 예절 챗봇 (Vercel + Gemini)"
+}

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>초등 4학년 국어 인터넷 언어 예절 카카오톡 챗봇 - 바름이와 함께해요</title>
+  <meta name="description" content="초등학교 4학년 국어과 교육과정 연계: 카카오톡 환경에서 실천하는 올바른 인터넷 언어 예절, 상황극 시뮬레이션, 예절 온도계, 바른 말 마법사 챗봇">
+
+  <!-- Google Fonts & Pretendard -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
+  <link rel="stylesheet" href="css/chat.css">
+</head>
+<body>
+
+  <!-- 전체 앱 컨테이너 -->
+  <div class="chat-app-container">
+    
+    <!-- 1. 최상단 네비게이션 & 예절 대시보드 바 -->
+    <header class="app-topbar">
+      <div class="topbar-brand">
+        <div class="brand-icon">🐿️</div>
+        <div class="brand-title-wrap">
+          <h1>
+            바름이의 언어 예절 톡톡
+            <span class="brand-badge">초등 4학년 국어</span>
+          </h1>
+          <p class="brand-sub">사이버 공간에서도 예의를 지키며 마음을 전해요</p>
+        </div>
+      </div>
+
+      <!-- 실시간 예절 온도계 (36.5℃ ~ 100℃) -->
+      <div class="temp-meter-container" title="고운 말과 배려의 말을 쓰면 온도가 올라가요!">
+        <div class="temp-label">
+          <span id="temp-emoji">🌱</span> 예절 온도
+        </div>
+        <div class="temp-gauge-bar">
+          <div id="temp-gauge-fill" class="temp-gauge-fill"></div>
+        </div>
+        <div id="temp-text" class="temp-value">36.5℃</div>
+      </div>
+
+      <!-- 헤더 조작 버튼 -->
+      <div class="topbar-actions">
+        <button id="sound-toggle-btn" class="top-btn" title="카톡 알림음 켜기/끄기">🔔</button>
+        <button id="badge-drawer-btn" class="top-btn" title="내가 모은 예절 배지 확인하기">🎖️ 배지함</button>
+        <button id="cert-print-btn" class="top-btn btn-primary-top" title="오늘의 대화 활동 인증서 인쇄">🖨️ 인증서 출력</button>
+        <button id="teacher-guide-btn" class="top-btn" title="선생님 수업 지도 가이드">👩‍🏫 수업 안내</button>
+        <button id="ai-config-btn" class="top-btn" title="AI 연결 상태 확인">🤖 AI 확인 중…</button>
+      </div>
+    </header>
+
+    <!-- 2. 본문 메인 레이아웃 (채팅 목록 + 대화창) -->
+    <main class="chat-main-body">
+      
+      <!-- 좌측 사이드바: 내 프로필 & 상황별 채팅방 목록 -->
+      <aside class="chat-sidebar">
+        <!-- 내 프로필 -->
+        <div class="sidebar-profile">
+          <div class="my-profile-wrap">
+            <div class="my-avatar">🎒</div>
+            <div class="my-info">
+              <div class="my-name" id="student-name-display">4학년 김바름</div>
+              <div class="my-status">온라인 언어 지킴이 🌟</div>
+            </div>
+          </div>
+          <button id="edit-name-btn" class="icon-btn-ghost" title="이름 및 학급 수정">✏️</button>
+        </div>
+
+        <!-- 대화방 목록 헤더 -->
+        <div class="room-list-header">
+          예절 톡방 목록 (5개)
+        </div>
+
+        <!-- 동적 렌더링 룸 리스트 -->
+        <div class="room-list" id="room-list">
+          <!-- chat-core.js에서 동적 생성 -->
+        </div>
+      </aside>
+
+      <!-- 우측 카카오톡 대화방 화면 -->
+      <section class="chat-window">
+        
+        <!-- 대화방 상단 바 -->
+        <div class="chat-room-header">
+          <div class="room-header-left">
+            <button id="mobile-back-btn" class="mobile-back-btn" title="목록으로 돌아가기">◀</button>
+            <div class="room-header-title-box">
+              <h2>
+                <span id="chat-room-title">바름이의 예절 상담소</span>
+                <span id="chat-room-members" class="room-members"></span>
+              </h2>
+              <span id="chat-room-role" class="room-header-role">언어 예절 멘토 요정</span>
+            </div>
+          </div>
+          
+          <div class="room-header-right">
+            <button class="btn-header-tool" onclick="location.reload()" title="대화 새로고침">🔄 새로고침</button>
+          </div>
+        </div>
+
+        <!-- 메시지 리스트 스크롤 영역 -->
+        <div class="chat-messages" id="chat-messages">
+          <!-- chat-core.js에서 동적 렌더링 -->
+        </div>
+
+        <!-- 바른 말 마법사 추천 바 (거친 말 입력 시 노출) -->
+        <div class="smart-suggestion-bar" id="smart-suggestion-bar">
+          <!-- 동적 추천 칩 -->
+        </div>
+
+        <!-- 하단 입력창 바 -->
+        <div class="chat-bottom-bar">
+          <button id="emoticon-picker-btn" class="icon-action-btn" title="귀여운 이모티콘 보내기">😊</button>
+          
+          <form id="chat-input-form" class="chat-input-form">
+            <input 
+              type="text" 
+              id="chat-input" 
+              class="chat-input-field" 
+              placeholder="친구를 배려하는 예쁜 말을 입력해 보세요..." 
+              autocomplete="off"
+            />
+            <button type="submit" id="btn-send" class="btn-send" title="전송">전송</button>
+          </form>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- 3. 모달 팝업 모음 -->
+    
+    <!-- (1) 이모티콘 선택기 모달 -->
+    <div class="modal-backdrop" id="emoticon-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>😊 예쁜 마음 이모티콘 스티커</h3>
+          <button class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="emoticon-grid">
+            <div class="emoticon-item" data-emo="👍">
+              <span class="emoticon-icon">👍</span>
+              <span class="emoticon-label">최고야!</span>
+            </div>
+            <div class="emoticon-item" data-emo="💖">
+              <span class="emoticon-icon">💖</span>
+              <span class="emoticon-label">고마워</span>
+            </div>
+            <div class="emoticon-item" data-emo="🥺">
+              <span class="emoticon-icon">🥺</span>
+              <span class="emoticon-label">미안해</span>
+            </div>
+            <div class="emoticon-item" data-emo="🤝">
+              <span class="emoticon-icon">🤝</span>
+              <span class="emoticon-label">함께하자</span>
+            </div>
+            <div class="emoticon-item" data-emo="👏">
+              <span class="emoticon-icon">👏</span>
+              <span class="emoticon-label">짝짝짝</span>
+            </div>
+            <div class="emoticon-item" data-emo="🧸">
+              <span class="emoticon-icon">🧸</span>
+              <span class="emoticon-label">토닥토닥</span>
+            </div>
+            <div class="emoticon-item" data-emo="🌷">
+              <span class="emoticon-icon">🌷</span>
+              <span class="emoticon-label">꽃길응원</span>
+            </div>
+            <div class="emoticon-item" data-emo="💡">
+              <span class="emoticon-icon">💡</span>
+              <span class="emoticon-label">좋은생각!</span>
+            </div>
+            <div class="emoticon-item" data-emo="✨">
+              <span class="emoticon-icon">✨</span>
+              <span class="emoticon-label">반짝반짝</span>
+            </div>
+            <div class="emoticon-item" data-emo="🌈">
+              <span class="emoticon-icon">🌈</span>
+              <span class="emoticon-label">힘내자!</span>
+            </div>
+            <div class="emoticon-item" data-emo="🦉">
+              <span class="emoticon-icon">🦉</span>
+              <span class="emoticon-label">질문있어</span>
+            </div>
+            <div class="emoticon-item" data-emo="👑">
+              <span class="emoticon-icon">👑</span>
+              <span class="emoticon-label">칭찬왕</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- (2) 배지함 모달 -->
+    <div class="modal-backdrop" id="badge-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🎖️ 나의 인터넷 언어 예절 배지함</h3>
+          <button class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="badge-grid" id="badge-list">
+            <!-- chat-core.js에서 동적 렌더링 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- (3) 선생님 수업 지도 가이드 모달 -->
+    <div class="modal-backdrop" id="teacher-modal">
+      <div class="modal-card" style="max-width: 640px;">
+        <div class="modal-header">
+          <h3>👩‍🏫 초등학교 4학년 국어과 수업 지도 가이드</h3>
+          <button class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px; margin-bottom: 14px; border-radius: 4px;">
+            <strong>🎯 교육과정 성취기준</strong>
+            <ul style="margin-left: 18px; margin-top: 6px; font-size: 13px;">
+              <li><strong>[4국01-04]</strong> 원활한 관계를 맺고 유지하기 위해 예의를 지키며 대화한다.</li>
+              <li><strong>[4국01-02]</strong> 회의나 온라인 대화 상황에서 의견을 교환하며 서로를 존중한다.</li>
+            </ul>
+          </div>
+
+          <h4 style="margin: 12px 0 6px;">⏱️ 추천 40분 차시 수업 흐름</h4>
+          <ol style="margin-left: 20px; font-size: 13px; line-height: 1.7;">
+            <li><strong>도입 (7분)</strong>: 단톡방에서 오해가 생겼던 경험 이야기 나누기, 인터넷 언어 예절의 중요성 인식.</li>
+            <li><strong>전개 1 (13분)</strong>: 웹앱의 3대 상황극(모둠 과제, 게임 단톡방, 위로방) 롤플레잉 체험하기.</li>
+            <li><strong>전개 2 (10분)</strong>: 거친 말/줄임말을 입력했을 때 '바른 말 마법사'가 추천해주는 표현 관찰 및 퀴즈 풀기.</li>
+            <li><strong>정리 (10분)</strong>: 예절 온도 80℃ 이상 달성 확인 후 <strong>'활동 인증서'</strong> 인쇄하여 나의 다짐 적기.</li>
+          </ol>
+
+          <h4 style="margin: 14px 0 6px;">💡 지도 팁 (Classroom Tips)</h4>
+          <p style="font-size: 12.5px; color: #4b5563;">
+            • 학생들이 일부러 비속어를 입력해보더라도 혼내지 마시고, 챗봇이 어떻게 반응하고 예절 온도가 왜 떨어지는지 스스로 느끼게 지도해 주세요.<br>
+            • 학교 컴퓨터실, 크롬북, 태블릿(아이패드, 갤럭시탭) 모두에서 별도 설치 없이 바로 구동됩니다.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="top-btn modal-close-btn">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- (4) 활동 인증서 인쇄 모달 -->
+    <div class="modal-backdrop" id="cert-modal">
+      <div class="modal-card" style="max-width: 620px;">
+        <div class="modal-header">
+          <h3>🖨️ 바른 언어생활 실천 인증서 미리보기</h3>
+          <button class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="printable-certificate">
+            <div class="cert-title">바른 언어생활 실천 인증서</div>
+            <div class="cert-subtitle">초등학교 4학년 국어과 인터넷 언어 예절 배움터</div>
+
+            <div class="cert-info-box">
+              <div class="cert-info-row">
+                <span><strong>이 름:</strong> <span id="cert-student-name">4학년 김바름</span></span>
+                <span><strong>수료일:</strong> <span id="cert-date">2026년 9월 11일</span></span>
+              </div>
+              <div class="cert-info-row">
+                <span><strong>최종 예절 온도:</strong> <span id="cert-temp" style="color: #e67700; font-weight: 800;">85.0℃</span></span>
+                <span><strong>실천 등급:</strong> 언어 예절 천사 🌟</span>
+              </div>
+              <div class="cert-info-row" style="margin-top: 8px;">
+                <div style="font-weight: 700; margin-bottom: 4px;">획득한 명예 배지:</div>
+                <div id="cert-badges-grid"></div>
+              </div>
+            </div>
+
+            <div class="cert-pledge-box">
+              <h4>📝 나의 인터넷 언어 다짐 (학생 자필 서약)</h4>
+              <p>“나는 앞으로 온라인 단톡방과 댓글을 쓸 때, 보이지 않는 친구의 마음을 먼저 헤아리며 바르고 고운 말과 따뜻한 공감의 말을 사용할 것을 약속합니다.”</p>
+            </div>
+
+            <div class="cert-sign-area">
+              <div>학 생: __________________ (인)</div>
+              <div>담임 교사: __________________ (인)</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="top-btn btn-primary-top" onclick="window.print()">🖨️ 인쇄하기 / PDF로 저장</button>
+          <button class="top-btn modal-close-btn">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 폭죽 효과 Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+  </div>
+
+  <!-- 스크립트 연결 -->
+  <script src="js/chat-safety.js"></script>
+  <script src="js/chat-scenarios.js"></script>
+  <script src="js/chat-ai.js"></script>
+  <script src="js/chat-core.js"></script>
+</body>
+</html>

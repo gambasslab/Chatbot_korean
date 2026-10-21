@@ -1,0 +1,1147 @@
+/* ==========================================================================
+   초등학교 4학년 국어과 인터넷 언어 예절 챗봇 (KakaoTalk Netiquette App)
+   - 테마: 카카오톡 감성 (#FEE500, #BACEE0, #371D1E)
+   - 서체: Pretendard, Gowun Batang, Outfit
+   - 반응형: 모바일, 태블릿, 컴퓨터실 PC 전폭 지원
+   - 활동 인증서 인쇄용 스타일(@media print) 포함
+   ========================================================================== */
+
+:root {
+  --kakao-yellow: #FEE500;
+  --kakao-brown: #3A1D1D;
+  --kakao-dark: #1e1e1e;
+  --kakao-bg: #BACEE0;
+  --kakao-sidebar-bg: #EAEFF4;
+  --kakao-bubble-sent: #FEE500;
+  --kakao-bubble-received: #FFFFFF;
+  --kakao-text-primary: #191919;
+  --kakao-text-muted: #6e7a88;
+  --kakao-border: #D7DEE4;
+  
+  --accent-blue: #3182F6;
+  --accent-green: #00B493;
+  --accent-red: #F04452;
+  --accent-warm: #FF8A3D;
+  
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.18);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  --font-main: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(135deg, #2b303a 0%, #1d212a 100%);
+  color: var(--kakao-text-primary);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 전체 앱 레이아웃 (데스크톱/태블릿 프레임) */
+.chat-app-container {
+  width: 100%;
+  max-width: 1040px;
+  height: 94vh;
+  max-height: 880px;
+  background-color: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 1. 최상단 네비게이션 & 예절 대시보드 헤더 */
+.app-topbar {
+  background-color: #313642;
+  color: #fff;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  font-size: 22px;
+  background: rgba(254, 229, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.brand-title-wrap h1 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brand-title-wrap .brand-badge {
+  font-size: 11px;
+  background-color: var(--kakao-yellow);
+  color: var(--kakao-brown);
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.brand-title-wrap .brand-sub {
+  font-size: 11px;
+  color: #a0aec0;
+}
+
+/* 예절 온도계 게이지 위젯 */
+.temp-meter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.25);
+  padding: 6px 14px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.temp-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.temp-gauge-bar {
+  width: 110px;
+  height: 10px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.temp-gauge-fill {
+  width: 36.5%;
+  height: 100%;
+  background: linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%);
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease;
+}
+
+.temp-value {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fbd38d;
+  min-width: 46px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 헤더 액션 버튼 모음 */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.top-btn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+
+.top-btn.btn-primary-top {
+  background: var(--kakao-yellow);
+  color: var(--kakao-brown);
+  border-color: var(--kakao-yellow);
+}
+
+.top-btn.btn-primary-top:hover {
+  background: #ecd400;
+}
+
+/* 2. 본문 메인 영역 (좌측 룸 리스트 + 우측 카톡 대화방) */
+.chat-main-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+/* 좌측 사이드바: 내 프로필 & 채팅 목록 */
+.chat-sidebar {
+  width: 320px;
+  background-color: var(--kakao-sidebar-bg);
+  border-right: 1px solid var(--kakao-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-profile {
+  padding: 14px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--kakao-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.my-profile-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.my-avatar {
+  font-size: 26px;
+  background: #e2e8f0;
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.my-info .my-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--kakao-text-primary);
+}
+
+.my-info .my-status {
+  font-size: 11px;
+  color: #718096;
+}
+
+.icon-btn-ghost {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #718096;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.icon-btn-ghost:hover {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+/* 채팅방 목록 헤더 & 스크롤 리스트 */
+.room-list-header {
+  padding: 10px 16px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.room-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.room-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+  transition: background 0.15s ease;
+}
+
+.room-item:hover {
+  background-color: #dee5ed;
+}
+
+.room-item.active {
+  background-color: #d1dbe6;
+  font-weight: 600;
+}
+
+.room-avatar {
+  width: 44px;
+  height: 44px;
+  background-color: #fff;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.room-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.room-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.room-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--kakao-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-members {
+  font-size: 11px;
+  color: #718096;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.room-time {
+  font-size: 10.5px;
+  color: #8c9ba5;
+  white-space: nowrap;
+}
+
+.room-preview {
+  font-size: 12px;
+  color: #637282;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 우측 카카오톡 대화방 화면 */
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--kakao-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 대화방 상단 바 */
+.chat-room-header {
+  background-color: rgba(186, 206, 224, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.room-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-back-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.room-header-title-box h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--kakao-brown);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.room-header-role {
+  font-size: 11px;
+  color: #556677;
+}
+
+.room-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-header-tool {
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.08);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #334455;
+  transition: all 0.2s ease;
+}
+
+.btn-header-tool:hover {
+  background: #fff;
+}
+
+/* 3. 대화 메시지 영역 (스크롤) */
+.chat-messages {
+  flex: 1;
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 시스템 메시지 알림 배너 */
+.message-system {
+  display: flex;
+  justify-content: center;
+  margin: 6px 0;
+}
+
+.system-pill {
+  background: rgba(0,0,0,0.18);
+  color: #ffffff;
+  font-size: 11.5px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  line-height: 1.4;
+  text-align: center;
+  max-width: 85%;
+  word-break: keep-all;
+}
+
+/* 메시지 로우 (수신 / 발신) */
+.message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 85%;
+}
+
+.message-row.sent {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-row.received {
+  align-self: flex-start;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  background-color: #fff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.message-received-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.sender-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4f5f6f;
+  margin-bottom: 3px;
+  margin-left: 2px;
+}
+
+.bubble-and-meta {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.bubble-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 10px;
+  color: #556677;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.message-row.sent .bubble-meta {
+  align-items: flex-end;
+}
+
+.unread-count {
+  font-size: 10px;
+  font-weight: 800;
+  color: #e59000;
+}
+
+.message-time {
+  font-size: 10px;
+  color: #728495;
+  white-space: nowrap;
+}
+
+/* 말풍선 스타일 (카카오톡 특유의 모양) */
+.message-bubble {
+  padding: 9px 13px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  line-height: 1.5;
+  word-break: break-word;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.message-bubble.sent {
+  background-color: var(--kakao-bubble-sent);
+  color: var(--kakao-text-primary);
+  border-top-right-radius: 2px;
+}
+
+.message-bubble.received {
+  background-color: var(--kakao-bubble-received);
+  color: var(--kakao-text-primary);
+  border-top-left-radius: 2px;
+}
+
+.bubble-text strong {
+  color: #1a202c;
+  font-weight: 700;
+}
+
+.bubble-emoticon {
+  font-size: 42px;
+  text-align: center;
+  margin: 4px 0;
+}
+
+/* 퀴즈 옵션 버튼군 */
+.quiz-options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 8px;
+}
+
+.quiz-option-btn {
+  background: #f7fafc;
+  border: 1px solid #cbd5e0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2d3748;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.quiz-option-btn:hover {
+  background: var(--kakao-yellow);
+  border-color: #e2cb00;
+  transform: translateX(2px);
+}
+
+/* 타이핑 중 애니메이션 (Typing indicator) */
+.typing-bubble {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.typing-bubble .dot {
+  width: 6px;
+  height: 6px;
+  background-color: #a0aec0;
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.typing-bubble .dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+  40% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* 4. 바른 말 마법사 추천 바 (Smart suggestion bar) */
+.smart-suggestion-bar {
+  display: none;
+  background: #FFF9DB;
+  border-top: 1px solid #F59F00;
+  border-bottom: 1px solid #FFE066;
+  padding: 10px 16px;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.suggestion-badge {
+  background: #F59F00;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.suggestion-title {
+  font-size: 12px;
+  color: #8c5800;
+  font-weight: 600;
+}
+
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-btn {
+  background: #ffffff;
+  border: 1px solid #ffd43b;
+  color: #d9480f;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.chip-btn:hover {
+  background: var(--kakao-yellow);
+  color: var(--kakao-brown);
+  transform: translateY(-1px);
+}
+
+/* 5. 하단 입력창 폼 (카톡 인풋바) */
+.chat-bottom-bar {
+  background-color: #fff;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.icon-action-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  color: #718096;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.icon-action-btn:hover {
+  background-color: #edf2f7;
+  color: #2d3748;
+}
+
+.chat-input-form {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #f1f3f5;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 4px 6px 4px 16px;
+}
+
+.chat-input-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--kakao-text-primary);
+  outline: none;
+}
+
+.chat-input-field::placeholder {
+  color: #a0aec0;
+}
+
+.btn-send {
+  background-color: var(--kakao-yellow);
+  border: none;
+  color: var(--kakao-brown);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn-send:hover {
+  transform: scale(1.06);
+  background-color: #ecd400;
+}
+
+/* 6. 모달 팝업 & 드로어 공통 스타일 */
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-backdrop.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 520px;
+  max-height: 85vh;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a202c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #718096;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.modal-close-btn:hover {
+  color: #1a202c;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #2d3748;
+}
+
+.modal-footer {
+  padding: 12px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* 이모티콘 선택기 모달 그리드 */
+.emoticon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.emoticon-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 12px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.emoticon-item:hover {
+  background: #fff;
+  border-color: var(--kakao-yellow);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.emoticon-icon {
+  font-size: 32px;
+}
+
+.emoticon-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+/* 배지함 리스트 */
+.badge-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.badge-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.badge-item.unlocked {
+  background: #fff9db;
+  border-color: #ffd43b;
+}
+
+.badge-item.locked {
+  opacity: 0.55;
+  filter: grayscale(80%);
+}
+
+.badge-item .badge-icon {
+  font-size: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.badge-item .badge-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.badge-item .badge-desc {
+  font-size: 11.5px;
+  color: #718096;
+}
+
+/* 토스트 메시지 */
+#chat-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(50px);
+  background: rgba(30, 30, 30, 0.92);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#chat-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* 캔버스 (Confetti 폭죽 파티클) */
+#confetti-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 90;
+}
+
+/* 7. 활동 인증서 인쇄용 스타일 (@media print) */
+@media print {
+  body {
+    background: #fff !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .chat-app-container {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    height: auto !important;
+    border: none !important;
+  }
+
+  .app-topbar,
+  .chat-sidebar,
+  .chat-room-header,
+  .chat-bottom-bar,
+  .smart-suggestion-bar,
+  .chat-messages,
+  #chat-toast,
+  #confetti-canvas {
+    display: none !important;
+  }
+
+  .modal-backdrop#cert-modal {
+    position: static !important;
+    display: block !important;
+    background: none !important;
+  }
+
+  .modal-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .modal-header,
+  .modal-footer {
+    display: none !important;
+  }
+
+  .printable-certificate {
+    display: block !important;
+    border: 8px double #4a5568 !important;
+    padding: 40px !important;
+    text-align: center !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+.printable-certificate {
+  border: 4px double #cbd5e0;
+  padding: 24px;
+  border-radius: 12px;
+  background: #fdfdfd;
+}
+
+.cert-title {
+  font-family: "Gowun Batang", serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #1a202c;
+}
+
+.cert-subtitle {
+  font-size: 13px;
+  color: #718096;
+  margin-bottom: 24px;
+}
+
+.cert-info-box {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.cert-info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.cert-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.cert-badge-tag {
+  display: inline-block;
+  background: #fff3bf;
+  color: #e67700;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.cert-pledge-box {
+  background: #edf2f7;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.cert-pledge-box h4 {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.cert-sign-area {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 모바일 반응형 처리 (< 768px) */
+@media (max-width: 768px) {
+  .chat-app-container {
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .chat-sidebar {
+    width: 100%;
+  }
+
+  .chat-window {
+    display: none;
+    width: 100%;
+  }
+
+  .chat-app-container.mobile-chat-active .chat-sidebar {
+    display: none;
+  }
+
+  .chat-app-container.mobile-chat-active .chat-window {
+    display: flex;
+  }
+
+  .mobile-back-btn {
+    display: block;
+  }
+
+  .temp-meter-container {
+    padding: 4px 8px;
+  }
+
+  .temp-gauge-bar {
+    width: 60px;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+}
