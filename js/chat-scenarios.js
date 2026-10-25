@@ -213,7 +213,7 @@ const NetiquetteScenarios = (() => {
             sender: 'doctor_hoon',
             name: '퀴즈 박사 훈이 🦉',
             avatar: '🦉',
-            text: '안녕! 나는 올바른 우리말과 인터넷 예절을 알려주는 **훈이 박사**란다! 🎓\n총 5문제의 예절 퀴즈를 풀어볼 준비가 되었니? 아래 보기 번호를 누르거나 답을 입력해봐!',
+            text: '안녕! 나는 올바른 우리말과 인터넷 예절을 알려주는 **훈이 박사**란다! 🎓\n총 5문제의 예절 퀴즈 중 **3문제 이상 맞히면 [활동 인증서]**를 선물로 받을 수 있단다!\n준비가 되었니? 아래 보기 번호를 누르거나 답을 입력해봐!',
             time,
             isBot: true
           },
@@ -242,8 +242,39 @@ const NetiquetteScenarios = (() => {
     group_project: { step: 0, completed: false },
     game_room: { step: 0, completed: false },
     comfort_room: { step: 0, completed: false },
-    quiz_room: { currentQ: 0, score: 0, completed: false }
+    quiz_room: {
+      currentQ: 0,
+      score: 0,
+      correctCount: parseInt(localStorage.getItem('netiquette_quiz_correct_count') || '0', 10),
+      completed: localStorage.getItem('netiquette_quiz_completed') === 'true'
+    }
   };
+
+  /**
+   * 퀴즈 현황 및 인증서 통과 여부 확인 유틸리티
+   */
+  function getQuizStats() {
+    const state = roomStates.quiz_room;
+    const storedCount = parseInt(localStorage.getItem('netiquette_quiz_correct_count') || '0', 10);
+    const count = Math.max(state.correctCount || 0, storedCount);
+    const passed = count >= 3;
+    return {
+      currentQ: state.currentQ,
+      score: state.score,
+      correctCount: count,
+      totalQuestions: quizQuestions.length,
+      completed: !!state.completed || localStorage.getItem('netiquette_quiz_completed') === 'true',
+      passed
+    };
+  }
+
+  function resetQuiz() {
+    const state = roomStates.quiz_room;
+    state.currentQ = 0;
+    state.score = 0;
+    state.correctCount = 0;
+    state.completed = false;
+  }
 
   /**
    * 학생의 메시지에 따른 시나리오별 반응 계산
@@ -541,12 +572,63 @@ const NetiquetteScenarios = (() => {
       // 5. 훈민정음 예절 퀴즈방
       // -------------------------------------------------------------
       case 'quiz_room': {
-        if (state.completed) {
+        const txt = studentText.toLowerCase().trim();
+
+        // 퀴즈 재시작 명령어 또는 다시 풀기 버튼
+        if (txt.includes('다시') || txt.includes('재도전') || txt.includes('처음부터')) {
+          resetQuiz();
           responses.push({
             sender: 'doctor_hoon',
             name: '퀴즈 박사 훈이 🦉',
             avatar: '🦉',
-            text: `이미 5문제를 모두 멋지게 풀었단다! (총 ${state.score}점 획득) 다른 친구들에게도 퀴즈를 내어보렴!`,
+            text: `좋아! 훈민정음 예절 퀴즈를 처음부터 다시 시작할게! 3문제 이상 꼭 맞혀서 활동 인증서를 획득해보자! 화이팅! 💪\n\n${quizQuestions[0].question}`,
+            options: quizQuestions[0].options,
+            quizIndex: 0,
+            time,
+            isBot: true
+          });
+          return responses;
+        }
+
+        // 인증서 확인 버튼 클릭 시
+        if (txt.includes('인증서 확인') || txt.includes('인증서')) {
+          const stats = getQuizStats();
+          if (stats.passed) {
+            responses.push({
+              sender: 'doctor_hoon',
+              name: '퀴즈 박사 훈이 🦉',
+              avatar: '🦉',
+              text: `멋지게 3문제 이상 맞힌 친구에게 활동 인증서 창을 열어줄게! 상단 [🖨️ 인증서 출력] 버튼으로도 언제든 인쇄할 수 있단다. 📜✨`,
+              time,
+              isBot: true,
+              openCert: true
+            });
+          } else {
+            responses.push({
+              sender: 'doctor_hoon',
+              name: '퀴즈 박사 훈이 🦉',
+              avatar: '🦉',
+              text: `아직 인증서를 받을 수 없어! 5문제 중 3문제 이상을 맞혀야 인증서가 수여된단다. (현재 맞힌 문제: ${stats.correctCount}/5문제)`,
+              options: ['🔄 퀴즈 다시 도전하기'],
+              time,
+              isBot: true
+            });
+          }
+          return responses;
+        }
+
+        // 이미 완료된 상태에서 일반 텍스트 입력 시
+        if (state.completed) {
+          const stats = getQuizStats();
+          const passMsg = stats.passed
+            ? `이미 3문제 이상 맞혀서 **[활동 인증서]**를 획득했단다! (맞힌 문제: ${stats.correctCount} / 5문제, 점수: ${state.score}점)`
+            : `이전 도전에서 ${stats.correctCount}문제를 맞혀 아쉽게 인증서를 받지 못했어. (기준: 3문제 이상)`;
+          responses.push({
+            sender: 'doctor_hoon',
+            name: '퀴즈 박사 훈이 🦉',
+            avatar: '🦉',
+            text: `${passMsg}\n다시 도전해보겠니?`,
+            options: stats.passed ? ['🖨️ 인증서 확인하기', '🔄 퀴즈 다시 풀기'] : ['🔄 퀴즈 다시 도전하기'],
             time,
             isBot: true
           });
@@ -556,27 +638,32 @@ const NetiquetteScenarios = (() => {
         const currentQ = quizQuestions[state.currentQ];
         let isCorrect = false;
 
-        // 답안 확인 (인덱스나 키워드)
-        const txt = studentText.toLowerCase().trim();
-        if (state.currentQ === 0) { // Q1: O/X
-          isCorrect = /o|맞다|언어폭력|1/.test(txt);
-        } else if (state.currentQ === 1) { // Q2: 2번
-          isCorrect = /2|네 생각|인정/.test(txt);
-        } else if (state.currentQ === 2) { // Q3: 2번
-          isCorrect = /2|고운 말|이모티콘/.test(txt);
-        } else if (state.currentQ === 3) { // Q4: 2번
-          isCorrect = /2|걱정|도와줄까/.test(txt);
-        } else if (state.currentQ === 4) { // Q5: 2번
-          isCorrect = /2|초상권|잘못/.test(txt);
+        // 정답 판정 (버튼 텍스트 또는 번호/키워드)
+        if (state.currentQ === 0) { // Q1: O/X -> 0번: 'O (맞다, 언어폭력이다)'
+          isCorrect = (studentText === currentQ.options[0]) ||
+                      (!txt.startsWith('x') && !txt.startsWith('2') && !txt.includes('아니다') && (/o|맞다|언어폭력|^1/.test(txt)));
+        } else if (state.currentQ === 1) { // Q2 -> 1번: '2) 네 생각은 그렇구나, 내 생각은 조금 달라'
+          isCorrect = (studentText === currentQ.options[1]) ||
+                      (/2|네 생각|조금 달라|인정/.test(txt));
+        } else if (state.currentQ === 2) { // Q3 -> 1번: '2) 바르고 고운 말과 적절한 이모티콘을 사용한다'
+          isCorrect = (studentText === currentQ.options[1]) ||
+                      (/2|고운 말|이모티콘/.test(txt));
+        } else if (state.currentQ === 3) { // Q4 -> 1번: '2) 네가 늦어서 과제가 늦어질까 봐 걱정됐어. 내가 도와줄까?'
+          isCorrect = (studentText === currentQ.options[1]) ||
+                      (/2|걱정|도와줄까/.test(txt));
+        } else if (state.currentQ === 4) { // Q5 -> 1번: '2) 친구의 초상권을 침해하고 수치심을 주는 잘못된 행동이다'
+          isCorrect = (studentText === currentQ.options[1]) ||
+                      (/2|초상권|수치심|잘못/.test(txt));
         }
 
         if (isCorrect) {
+          state.correctCount = (state.correctCount || 0) + 1;
           state.score += 20;
           responses.push({
             sender: 'doctor_hoon',
             name: '퀴즈 박사 훈이 🦉',
             avatar: '🦉',
-            text: `🎯 **딩동댕! 정답입니다!** (+20점)\n\n${currentQ.explanation}`,
+            text: `🎯 **딩동댕! 정답입니다!** (현재 ${state.correctCount}문제 정답 / +20점)\n\n${currentQ.explanation}`,
             time,
             isBot: true
           });
@@ -585,7 +672,7 @@ const NetiquetteScenarios = (() => {
             sender: 'doctor_hoon',
             name: '퀴즈 박사 훈이 🦉',
             avatar: '🦉',
-            text: `아쉽지만 오답이에요! 😅\n\n💡 정답 해설: ${currentQ.explanation}`,
+            text: `아쉽지만 오답이에요! 😅 (현재 ${state.correctCount || 0}문제 정답)\n\n💡 정답 해설: ${currentQ.explanation}`,
             time,
             isBot: true
           });
@@ -608,21 +695,55 @@ const NetiquetteScenarios = (() => {
           });
         } else {
           state.completed = true;
-          responses.push({
-            sender: 'doctor_hoon',
-            name: '퀴즈 박사 훈이 🦉',
-            avatar: '🦉',
-            text: `🏆 **모든 퀴즈를 마쳤습니다!**\n네 최종 점수는 **${state.score}점 / 100점**이야!\n올바른 인터넷 예절 지식을 멋지게 익혔구나! 참 잘했어! 👏`,
-            time,
-            isBot: true
-          });
-          responses.push({
-            sender: 'system',
-            text: '🎉 [퀴즈 완료!] 5문제를 모두 풀고 인터넷 예절 상식을 마스터했습니다! **[우리말 퀴즈왕 배지]**를 획득했어요!',
-            time,
-            isSystem: true,
-            grantBadge: '우리말 퀴즈왕'
-          });
+          const passed = (state.correctCount || 0) >= 3;
+
+          // 로컬 스토리지에 결과 저장
+          try {
+            const prevBest = parseInt(localStorage.getItem('netiquette_quiz_correct_count') || '0', 10);
+            const bestCount = Math.max(state.correctCount || 0, prevBest);
+            localStorage.setItem('netiquette_quiz_correct_count', String(bestCount));
+            localStorage.setItem('netiquette_quiz_score', String(Math.max(state.score || 0, parseInt(localStorage.getItem('netiquette_quiz_score') || '0', 10))));
+            localStorage.setItem('netiquette_quiz_completed', 'true');
+            if (bestCount >= 3) {
+              localStorage.setItem('netiquette_quiz_passed', 'true');
+            }
+          } catch (e) {}
+
+          if (passed) {
+            responses.push({
+              sender: 'doctor_hoon',
+              name: '퀴즈 박사 훈이 🦉',
+              avatar: '🦉',
+              text: `🏆 **축하합니다! 퀴즈 미션 통과!**\n네 최종 결과는 **5문제 중 ${state.correctCount}문제 정답** (${state.score}점 / 100점)이야! 👏\n\n기준(**3문제 이상 정답**)을 훌륭하게 통과하여 **[바른 언어생활 실천 인증서]**가 정식으로 수여되었습니다! 📜✨\n\n지금 화면 상단 우측의 **[🖨️ 인증서 출력]** 버튼을 눌러 인증서를 확인하고 인쇄해 보렴!`,
+              options: ['🖨️ 인증서 확인하기', '🔄 만점 도전! 퀴즈 다시 풀기'],
+              time,
+              isBot: true
+            });
+            responses.push({
+              sender: 'system',
+              text: `🎉 [퀴즈 통과 & 인증서 수여!] 5문제 중 ${state.correctCount}문제를 맞춰 **[우리말 퀴즈왕 배지]**와 함께 **활동 인증서**가 잠금 해제되었습니다! 상단 [인증서 출력] 버튼을 확인하세요.`,
+              time,
+              isSystem: true,
+              grantBadge: '우리말 퀴즈왕',
+              unlockCert: true
+            });
+          } else {
+            responses.push({
+              sender: 'doctor_hoon',
+              name: '퀴즈 박사 훈이 🦉',
+              avatar: '🦉',
+              text: `😢 **아쉬워요! 조금만 더 힘내볼까요?**\n네 최종 점수는 **${state.score}점** (5문제 중 **${state.correctCount || 0}문제 정답**)이야.\n\n활동 인증서를 받으려면 **3문제 이상** 맞혀야 한단다! (현재 ${state.correctCount || 0}문제 / 기준 3문제 이상)\n\n정답 해설을 다시 생각해보며 바로 재도전해볼까?`,
+              options: ['🔄 퀴즈 다시 도전하기'],
+              time,
+              isBot: true
+            });
+            responses.push({
+              sender: 'system',
+              text: `⚠️ [인증서 발급 대기] 퀴즈를 3문제 이상 맞혀야 인증서가 수여됩니다. (현재 맞힌 문제: ${state.correctCount || 0}/5문제 | 기준: 3문제 이상)`,
+              time,
+              isSystem: true
+            });
+          }
         }
 
         return responses;
@@ -648,7 +769,9 @@ const NetiquetteScenarios = (() => {
     getInitialMessages,
     processMessage,
     roomStates,
-    getCurrentTimeStr
+    getCurrentTimeStr,
+    getQuizStats,
+    resetQuiz
   };
 })();
 

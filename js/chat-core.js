@@ -167,6 +167,9 @@ const ChatCore = (() => {
 
     // 사운드 토글 초기 아이콘
     updateSoundBtn();
+
+    // 활동 인증서 버튼 초기 상태 (퀴즈 3문제 이상 여부)
+    updateCertBtnState();
   }
 
   /**
@@ -518,8 +521,19 @@ const ChatCore = (() => {
             if (r.grantBadge) {
               grantBadge(r.grantBadge);
             }
+            if (r.unlockCert) {
+              updateCertBtnState();
+              triggerConfetti();
+              playFanfareSound();
+              showToast('📜 바른 언어생활 실천 인증서가 수여되었습니다!');
+            }
+            if (r.openCert) {
+              prepareCertificate();
+              document.getElementById('cert-modal')?.classList.add('active');
+            }
           });
         }
+        updateCertBtnState();
         playKatalkSound();
         renderMessages();
         renderRoomList();
@@ -657,13 +671,29 @@ const ChatCore = (() => {
       });
     }
 
-    // 활동 인증서 모달 & 인쇄
+    // 활동 인증서 모달 & 인쇄 (퀴즈 3문제 이상 맞춰야 발급)
     const certBtn = document.getElementById('cert-print-btn');
     const certModal = document.getElementById('cert-modal');
-    if (certBtn && certModal) {
+    if (certBtn) {
       certBtn.addEventListener('click', () => {
-        prepareCertificate();
-        certModal.classList.add('active');
+        const stats = (typeof NetiquetteScenarios !== 'undefined' && NetiquetteScenarios.getQuizStats)
+          ? NetiquetteScenarios.getQuizStats()
+          : { passed: false, correctCount: 0 };
+        if (stats.passed) {
+          prepareCertificate();
+          certModal?.classList.add('active');
+        } else {
+          showCertLockedModal(stats);
+        }
+      });
+    }
+
+    // 퀴즈 풀러 가기 버튼 (인증서 잠금 안내 모달)
+    const goToQuizBtn = document.getElementById('go-to-quiz-btn');
+    if (goToQuizBtn) {
+      goToQuizBtn.addEventListener('click', () => {
+        document.getElementById('cert-locked-modal')?.classList.remove('active');
+        switchRoom('quiz_room');
       });
     }
 
@@ -720,15 +750,69 @@ const ChatCore = (() => {
     const certDate = document.getElementById('cert-date');
     const certTemp = document.getElementById('cert-temp');
     const certBadges = document.getElementById('cert-badges-grid');
+    const certQuiz = document.getElementById('cert-quiz-score');
 
     if (certName) certName.textContent = state.studentName;
     if (certDate) certDate.textContent = dateStr;
     if (certTemp) certTemp.textContent = `${state.temperature.toFixed(1)}℃`;
 
+    const stats = (typeof NetiquetteScenarios !== 'undefined' && NetiquetteScenarios.getQuizStats)
+      ? NetiquetteScenarios.getQuizStats()
+      : { correctCount: 0 };
+    if (certQuiz) {
+      certQuiz.textContent = `5문제 중 ${stats.correctCount}문제 정답 (통과 기준 달성 🌟)`;
+    }
+
     if (certBadges) {
       certBadges.innerHTML = state.badges.length > 0
         ? state.badges.map(b => `<span class="cert-badge-tag">🎖️ ${b}</span>`).join(' ')
         : '<span class="cert-no-badge">미션을 완료하여 배지를 획득해보세요!</span>';
+    }
+  }
+
+  /**
+   * 인증서 잠금(기준 미달) 모달 표시
+   */
+  function showCertLockedModal(stats) {
+    const certLockedModal = document.getElementById('cert-locked-modal');
+    const statusText = document.getElementById('cert-lock-status-text');
+    const statusSub = document.getElementById('cert-lock-status-sub');
+
+    const count = stats ? (stats.correctCount || 0) : 0;
+    if (statusText) {
+      statusText.innerHTML = `맞힌 문제: <strong style="color: #e11d48; font-size: 20px;">${count}</strong> / 5문제 (통과 기준: 3문제 이상)`;
+    }
+    if (statusSub) {
+      const remaining = Math.max(0, 3 - count);
+      if (count === 0) {
+        statusSub.innerHTML = `💡 아직 퀴즈를 풀지 않았거나 정답이 없습니다. 훈이 박사와 함께 3문제 이상 맞혀보세요!`;
+      } else {
+        statusSub.innerHTML = `💡 앞으로 <strong>${remaining}문제</strong>만 더 맞히면 인증서를 발급받을 수 있어요!`;
+      }
+    }
+    certLockedModal?.classList.add('active');
+  }
+
+  /**
+   * 상단 인증서 버튼 UI 상태 업데이트 (잠금 / 해제)
+   */
+  function updateCertBtnState() {
+    const certBtn = document.getElementById('cert-print-btn');
+    if (!certBtn) return;
+    const stats = (typeof NetiquetteScenarios !== 'undefined' && NetiquetteScenarios.getQuizStats)
+      ? NetiquetteScenarios.getQuizStats()
+      : { passed: false, correctCount: 0 };
+
+    if (stats.passed) {
+      certBtn.classList.remove('btn-cert-locked');
+      certBtn.classList.add('btn-primary-top', 'btn-cert-unlocked');
+      certBtn.innerHTML = '🖨️ 인증서 출력 ✨';
+      certBtn.title = `축하합니다! 퀴즈 ${stats.correctCount}문제를 맞춰 인증서가 발급되었습니다. 클릭하여 인쇄하세요.`;
+    } else {
+      certBtn.classList.remove('btn-primary-top', 'btn-cert-unlocked');
+      certBtn.classList.add('btn-cert-locked');
+      certBtn.innerHTML = '🔒 인증서 출력';
+      certBtn.title = `도전! 훈민정음 퀴즈를 3문제 이상 맞혀야 인증서를 출력할 수 있습니다. (현재: ${stats.correctCount}/5)`;
     }
   }
 
@@ -843,6 +927,8 @@ const ChatCore = (() => {
     grantBadge,
     triggerConfetti,
     showToast,
+    updateCertBtnState,
+    showCertLockedModal,
     state
   };
 })();

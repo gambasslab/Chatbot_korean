@@ -47,7 +47,7 @@
       <div class="topbar-actions">
         <button id="sound-toggle-btn" class="top-btn" title="카톡 알림음 켜기/끄기">🔔</button>
         <button id="badge-drawer-btn" class="top-btn" title="내가 모은 예절 배지 확인하기">🎖️ 배지함</button>
-        <button id="cert-print-btn" class="top-btn btn-primary-top" title="오늘의 대화 활동 인증서 인쇄">🖨️ 인증서 출력</button>
+        <button id="cert-print-btn" class="top-btn btn-cert-locked" title="도전! 훈민정음 퀴즈를 3문제 이상 맞혀야 인증서를 출력할 수 있습니다.">🔒 인증서 출력</button>
         <button id="teacher-guide-btn" class="top-btn" title="선생님 수업 지도 가이드">👩‍🏫 수업 안내</button>
         <button id="ai-config-btn" class="top-btn" title="AI 연결 상태 확인">🤖 AI 확인 중…</button>
       </div>
@@ -232,7 +232,7 @@
             <li><strong>도입 (7분)</strong>: 단톡방에서 오해가 생겼던 경험 이야기 나누기, 인터넷 언어 예절의 중요성 인식.</li>
             <li><strong>전개 1 (13분)</strong>: 웹앱의 3대 상황극(모둠 과제, 게임 단톡방, 위로방) 롤플레잉 체험하기.</li>
             <li><strong>전개 2 (10분)</strong>: 거친 말/줄임말을 입력했을 때 '바른 말 마법사'가 추천해주는 표현 관찰 및 퀴즈 풀기.</li>
-            <li><strong>정리 (10분)</strong>: 예절 온도 80℃ 이상 달성 확인 후 <strong>'활동 인증서'</strong> 인쇄하여 나의 다짐 적기.</li>
+            <li><strong>정리 (10분)</strong>: 예절 온도 확인 및 <strong>'훈민정음 퀴즈' 3문제 이상 정답 달성</strong> 후 <strong>'활동 인증서'</strong> 인쇄하여 나의 다짐 적기.</li>
           </ol>
 
           <h4 style="margin: 14px 0 6px;">💡 지도 팁 (Classroom Tips)</h4>
@@ -266,7 +266,7 @@
               </div>
               <div class="cert-info-row">
                 <span><strong>최종 예절 온도:</strong> <span id="cert-temp" style="color: #e67700; font-weight: 800;">85.0℃</span></span>
-                <span><strong>실천 등급:</strong> 언어 예절 천사 🌟</span>
+                <span><strong>퀴즈 평가:</strong> <span id="cert-quiz-score" style="color: #2563eb; font-weight: 800;">5문제 중 3문제 이상 정답 (통과 🌟)</span></span>
               </div>
               <div class="cert-info-row" style="margin-top: 8px;">
                 <div style="font-weight: 700; margin-bottom: 4px;">획득한 명예 배지:</div>
@@ -288,6 +288,41 @@
         <div class="modal-footer">
           <button class="top-btn btn-primary-top" onclick="window.print()">🖨️ 인쇄하기 / PDF로 저장</button>
           <button class="top-btn modal-close-btn">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- (4-1) 활동 인증서 잠금(기준 미달) 안내 모달 -->
+    <div class="modal-backdrop" id="cert-locked-modal">
+      <div class="modal-card" style="max-width: 480px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; position: relative;">
+          <h3 style="color: #b45309;">🔒 활동 인증서 발급 안내</h3>
+          <button class="modal-close-btn" style="position: absolute; right: 16px;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 24px 20px;">
+          <div style="font-size: 52px; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">📜🔒</div>
+          <h4 style="font-size: 17px; font-weight: 700; margin-bottom: 8px; color: #1f2937;">퀴즈를 3문제 이상 맞혀야 인증서가 수여됩니다!</h4>
+          <p style="font-size: 13.5px; color: #4b5563; line-height: 1.6; margin-bottom: 18px;">
+            바른 언어생활 실천 인증서를 발급받으려면<br>
+            <strong>[도전! 훈민정음 퀴즈 배틀]</strong>에서 <strong>3문제 이상</strong> 정답을 맞혀야 해요!
+          </p>
+          <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+            <div style="font-size: 12.5px; color: #64748b; margin-bottom: 4px; font-weight: 600;">현재 퀴즈 현황</div>
+            <div style="font-size: 20px; font-weight: 800; color: #e11d48;" id="cert-lock-status-text">
+              맞힌 문제: 0 / 5문제 (통과 기준: 3문제 이상)
+            </div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 5px;" id="cert-lock-status-sub">
+              💡 훈이 박사와 함께 퀴즈를 풀고 인증서를 잠금 해제해 보세요!
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button id="go-to-quiz-btn" class="top-btn btn-primary-top" style="padding: 10px 22px; font-size: 14px; border-radius: 8px;">
+              🦉 지금 퀴즈 풀러 가기
+            </button>
+            <button class="top-btn modal-close-btn" style="padding: 10px 18px; font-size: 14px; border-radius: 8px; background: #e2e8f0; color: #334155;">
+              닫기
+            </button>
+          </div>
         </div>
       </div>
     </div>
