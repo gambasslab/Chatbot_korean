@@ -197,6 +197,21 @@ body {
   background: #ecd400;
 }
 
+/* 처음부터 다시하기 리셋 버튼 스타일 */
+.top-btn.btn-reset-all {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+  font-weight: 700;
+}
+
+.top-btn.btn-reset-all:hover {
+  background: rgba(239, 68, 68, 0.32);
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
 /* 활동 인증서 잠금/해제 버튼 상태 */
 .top-btn.btn-cert-locked {
   background: rgba(255, 255, 255, 0.08);

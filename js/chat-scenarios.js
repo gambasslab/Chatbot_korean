@@ -245,25 +245,24 @@ const NetiquetteScenarios = (() => {
     quiz_room: {
       currentQ: 0,
       score: 0,
-      correctCount: parseInt(localStorage.getItem('netiquette_quiz_correct_count') || '0', 10),
-      completed: localStorage.getItem('netiquette_quiz_completed') === 'true'
+      correctCount: 0,
+      completed: false
     }
   };
 
   /**
-   * 퀴즈 현황 및 인증서 통과 여부 확인 유틸리티
+   * 퀴즈 현황 및 인증서 통과 여부 확인 유틸리티 (메모리 변수 기준)
    */
   function getQuizStats() {
     const state = roomStates.quiz_room;
-    const storedCount = parseInt(localStorage.getItem('netiquette_quiz_correct_count') || '0', 10);
-    const count = Math.max(state.correctCount || 0, storedCount);
+    const count = state.correctCount || 0;
     const passed = count >= 3;
     return {
       currentQ: state.currentQ,
       score: state.score,
       correctCount: count,
       totalQuestions: quizQuestions.length,
-      completed: !!state.completed || localStorage.getItem('netiquette_quiz_completed') === 'true',
+      completed: !!state.completed,
       passed
     };
   }
@@ -274,6 +273,22 @@ const NetiquetteScenarios = (() => {
     state.score = 0;
     state.correctCount = 0;
     state.completed = false;
+  }
+
+  /**
+   * 모든 시나리오 및 퀴즈 상태를 처음(0단계)으로 초기화
+   */
+  function resetAllScenarios() {
+    roomStates.bareum = { step: 0 };
+    roomStates.group_project = { step: 0, completed: false };
+    roomStates.game_room = { step: 0, completed: false };
+    roomStates.comfort_room = { step: 0, completed: false };
+    roomStates.quiz_room = {
+      currentQ: 0,
+      score: 0,
+      correctCount: 0,
+      completed: false
+    };
   }
 
   /**
@@ -697,17 +712,7 @@ const NetiquetteScenarios = (() => {
           state.completed = true;
           const passed = (state.correctCount || 0) >= 3;
 
-          // 로컬 스토리지에 결과 저장
-          try {
-            const prevBest = parseInt(localStorage.getItem('netiquette_quiz_correct_count') || '0', 10);
-            const bestCount = Math.max(state.correctCount || 0, prevBest);
-            localStorage.setItem('netiquette_quiz_correct_count', String(bestCount));
-            localStorage.setItem('netiquette_quiz_score', String(Math.max(state.score || 0, parseInt(localStorage.getItem('netiquette_quiz_score') || '0', 10))));
-            localStorage.setItem('netiquette_quiz_completed', 'true');
-            if (bestCount >= 3) {
-              localStorage.setItem('netiquette_quiz_passed', 'true');
-            }
-          } catch (e) {}
+          // 퀴즈 결과는 메모리 변수(state)로만 유지 (localStorage 저장 제거)
 
           if (passed) {
             responses.push({
@@ -771,7 +776,8 @@ const NetiquetteScenarios = (() => {
     roomStates,
     getCurrentTimeStr,
     getQuizStats,
-    resetQuiz
+    resetQuiz,
+    resetAllScenarios
   };
 })();
 

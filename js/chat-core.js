@@ -7,13 +7,34 @@
  */
 
 const ChatCore = (() => {
-  // 상태 객체
+  // 접속/새로고침 시 초기화할 localStorage 키 목록
+  const STORAGE_KEYS_TO_CLEAR = [
+    'netiquette_temp',
+    'netiquette_badges',
+    'netiquette_quiz_correct_count',
+    'netiquette_quiz_score',
+    'netiquette_quiz_completed',
+    'netiquette_quiz_passed'
+  ];
+
+  function clearStoredData() {
+    try {
+      STORAGE_KEYS_TO_CLEAR.forEach(key => localStorage.removeItem(key));
+    } catch (e) {
+      console.warn('localStorage clear failed:', e);
+    }
+  }
+
+  // 페이지 진입 즉시 이전 저장소 데이터 정리
+  clearStoredData();
+
+  // 상태 객체 (localStorage 대신 메모리 변수만 사용하여 새로고침 시 항상 초기값으로 시작)
   const state = {
     studentName: localStorage.getItem('netiquette_student_name') || '4학년 김바름',
-    temperature: parseFloat(localStorage.getItem('netiquette_temp')) || 36.5,
+    temperature: 36.5,
     soundEnabled: localStorage.getItem('netiquette_sound') !== 'false',
     activeRoomId: 'bareum',
-    badges: JSON.parse(localStorage.getItem('netiquette_badges') || '[]'),
+    badges: [],
     missions: {
       praise: false,
       group: false,
@@ -178,7 +199,6 @@ const ChatCore = (() => {
   function updateTemperature(delta) {
     const oldTemp = state.temperature;
     state.temperature = Math.max(10, Math.min(100, Math.round((state.temperature + delta) * 10) / 10));
-    localStorage.setItem('netiquette_temp', state.temperature);
 
     const tempText = document.getElementById('temp-text');
     const tempFill = document.getElementById('temp-gauge-fill');
@@ -224,7 +244,6 @@ const ChatCore = (() => {
   function grantBadge(badgeName) {
     if (!state.badges.includes(badgeName)) {
       state.badges.push(badgeName);
-      localStorage.setItem('netiquette_badges', JSON.stringify(state.badges));
       triggerConfetti();
       playFanfareSound();
       showToast(`🎖️ 새로운 배지 획득! [${badgeName}]`);
@@ -652,6 +671,23 @@ const ChatCore = (() => {
       });
     }
 
+    // 상단 "🔄 처음부터 다시하기" 버튼
+    const resetBtn = document.getElementById('reset-all-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        resetAll(false);
+      });
+    }
+
+    // 대화창 상단 헤더 리셋 버튼
+    const roomRefreshBtn = document.getElementById('room-refresh-btn');
+    if (roomRefreshBtn) {
+      roomRefreshBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetAll(false);
+      });
+    }
+
     // 배지함 버튼
     const badgeBtn = document.getElementById('badge-drawer-btn');
     const badgeModal = document.getElementById('badge-modal');
@@ -919,6 +955,67 @@ const ChatCore = (() => {
     return escaped;
   }
 
+  /**
+   * 전체 데이터 초기화: 예절 온도(36.5℃), 배지, 퀴즈 기록, 대화 내용 모두 초기 상태로 리셋
+   */
+  function resetAll(skipConfirm = false) {
+    if (!skipConfirm) {
+      const ok = confirm('🔄 모든 기록을 처음부터 다시 시작할까요?\n\n• 예절 온도: 36.5℃ 초기화\n• 배지 & 퀴즈 기록: 모두 초기화\n• 대화 내용: 초기 상태로 복구');
+      if (!ok) return;
+    }
+
+    // 1. 관련 localStorage 키 모두 삭제
+    clearStoredData();
+
+    // 2. 메모리 상태 완전 초기화
+    state.temperature = 36.5;
+    state.badges = [];
+    state.missions = {
+      praise: false,
+      group: false,
+      game: false,
+      quiz: false,
+      temp80: false
+    };
+    state.activeRoomId = 'bareum';
+    state.isTyping = false;
+
+    // 3. 시나리오 및 퀴즈 상태 초기화
+    if (typeof NetiquetteScenarios !== 'undefined' && typeof NetiquetteScenarios.resetAllScenarios === 'function') {
+      NetiquetteScenarios.resetAllScenarios();
+    }
+
+    // 4. 대화 내용 초기 메시지로 재설정
+    if (typeof NetiquetteScenarios !== 'undefined' && NetiquetteScenarios.rooms) {
+      for (const key of Object.keys(NetiquetteScenarios.rooms)) {
+        state.messages[key] = NetiquetteScenarios.getInitialMessages(key);
+      }
+    }
+
+    // 5. UI 동기화
+    updateTemperature(0);
+    renderBadges();
+    renderRoomList();
+    switchRoom('bareum');
+    updateCertBtnState();
+
+    // 스마트 추천 바 숨기기
+    const suggBar = document.getElementById('smart-suggestion-bar');
+    if (suggBar) {
+      suggBar.classList.remove('active');
+      suggBar.innerHTML = '';
+    }
+
+    // 입력창 초기화
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+
+    showToast('🌱 예절 온도(36.5℃), 배지, 퀴즈, 대화가 모두 처음 상태로 초기화되었습니다!');
+  }
+
   return {
     init,
     sendUserMessage,
@@ -929,6 +1026,8 @@ const ChatCore = (() => {
     showToast,
     updateCertBtnState,
     showCertLockedModal,
+    resetAll,
+    clearStoredData,
     state
   };
 })();
